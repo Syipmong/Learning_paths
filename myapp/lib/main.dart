@@ -48,15 +48,22 @@ class _FirstScreenState extends State<FirstScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showDialog(context: context, builder: (context) => AlertDialog(
-            title: Text("New Task"),
-            content: TextField(
-              controller: _taskController,
-              decoration: InputDecoration(
-                hintText: "Enter Task Name"
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text("New Task"),
+              content: TextField(
+                controller: _taskController,
+                decoration: InputDecoration(hintText: "Enter Task Name"),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, _taskController),
+                  child: Text("Submit"),
+                ),
+              ],
             ),
-          ),);
+          );
         },
         child: Icon(Icons.add),
       ),
