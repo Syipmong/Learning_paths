@@ -13,33 +13,33 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class FirstScreen extends StatelessWidget {
-  FirstScreen({super.key});
+class FirstScreen extends StatefulWidget {
+  const FirstScreen({super.key});
 
-  final TextEditingController _controller = TextEditingController();
+  @override
+  State<FirstScreen> createState() => _FirstScreenState();
+}
+
+class _FirstScreenState extends State<FirstScreen> {
+  final List<String> tasks = [
+    "Buy Milk",
+    "Walk the Dog",
+    "Code Flutter",
+    "Eat Pizza",
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("First Screen")),
-      body: Column(
-        mainAxisAlignment: .center,
-        children: [
-          TextField(
-            controller: _controller,
-          ),
-          ElevatedButton(
-            onPressed: () async {
-             final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SecondScreen(data: _controller.text,)),
-              );
-              print("Returned: $result");
-            },
-            child: Text("Go To SecondScreen"),
-            
-          ),
-        ],
-      ),
+      body: ListView.builder(
+        itemCount: tasks.length,
+        itemBuilder: (context, index)=> ListTile(
+            title: Text(tasks[index]),
+            leading: Icon(Icons.check_circle_outline),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> SecondScreen(data: tasks[index]))),
+        )
+        ),
     );
   }
 }
