@@ -21,6 +21,7 @@ class FirstScreen extends StatefulWidget {
 }
 
 class _FirstScreenState extends State<FirstScreen> {
+  final TextEditingController _taskController = TextEditingController();
   final List<String> tasks = [
     "Buy Milk",
     "Walk the Dog",
@@ -47,7 +48,15 @@ class _FirstScreenState extends State<FirstScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print("Add Button Clicked!");
+          showDialog(context: context, builder: (context) => AlertDialog(
+            title: Text("New Task"),
+            content: TextField(
+              controller: _taskController,
+              decoration: InputDecoration(
+                hintText: "Enter Task Name"
+              ),
+            ),
+          ),);
         },
         child: Icon(Icons.add),
       ),
