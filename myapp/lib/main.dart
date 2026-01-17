@@ -22,12 +22,14 @@ class FirstScreen extends StatefulWidget {
 
 class _FirstScreenState extends State<FirstScreen> {
   final TextEditingController _taskController = TextEditingController();
-  final List<String> tasks = [
-    "Buy Milk",
-    "Walk the Dog",
-    "Code Flutter",
-    "Eat Pizza",
-  ];
+  final List<Task> tasks = [
+    Task(name: "Buy Milk", isCompleted: false),
+    Task(name: "Walk the Dog", isCompleted: false),
+    Task(name: "Code Flutter", isCompleted: false),
+    Task(name: "Eat Pizza", isCompleted: true)
+    ];
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -36,17 +38,20 @@ class _FirstScreenState extends State<FirstScreen> {
       body: ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (context, index) => ListTile(
-          title: Text(tasks[index]),
+          title: Text(tasks[index].name),
           leading: Icon(Icons.check_circle_outline),
-          trailing: IconButton(icon: Icon(Icons.delete),onPressed:(){
-            setState(() {
-              tasks.removeAt(index);
-            });
-          } ),
+          trailing: IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              setState(() {
+                tasks.removeAt(index);
+              });
+            },
+          ),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SecondScreen(data: tasks[index]),
+              builder: (context) => SecondScreen(data: tasks[index].name),
             ),
           ),
         ),
@@ -64,7 +69,7 @@ class _FirstScreenState extends State<FirstScreen> {
               actions: [
                 TextButton(
                   onPressed: () => setState(() {
-                    tasks.add(_taskController.text);
+                    tasks.add(Task(name: _taskController.text, isCompleted: false));
                     _taskController.clear();
                     Navigator.pop(context);
                   }),
@@ -100,4 +105,11 @@ class SecondScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class Task {
+  final String name;
+  final bool isCompleted;
+
+  Task({required this.name, required this.isCompleted});
 }
