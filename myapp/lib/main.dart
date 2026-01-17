@@ -38,6 +38,11 @@ class _FirstScreenState extends State<FirstScreen> {
         itemBuilder: (context, index) => ListTile(
           title: Text(tasks[index]),
           leading: Icon(Icons.check_circle_outline),
+          trailing: IconButton(icon: Icon(Icons.delete),onPressed:(){
+            setState(() {
+              tasks.removeAt(index);
+            });
+          } ),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
@@ -61,6 +66,7 @@ class _FirstScreenState extends State<FirstScreen> {
                   onPressed: () => setState(() {
                     tasks.add(_taskController.text);
                     _taskController.clear();
+                    Navigator.pop(context);
                   }),
                   child: Text("Submit"),
                 ),
