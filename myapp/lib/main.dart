@@ -58,7 +58,10 @@ class _FirstScreenState extends State<FirstScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, _taskController),
+                  onPressed: () => setState(() {
+                    tasks.add(_taskController.text);
+                    _taskController.clear();
+                  }),
                   child: Text("Submit"),
                 ),
               ],
