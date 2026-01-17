@@ -34,12 +34,23 @@ class _FirstScreenState extends State<FirstScreen> {
       appBar: AppBar(title: Text("First Screen")),
       body: ListView.builder(
         itemCount: tasks.length,
-        itemBuilder: (context, index)=> ListTile(
-            title: Text(tasks[index]),
-            leading: Icon(Icons.check_circle_outline),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context)=> SecondScreen(data: tasks[index]))),
-        )
+        itemBuilder: (context, index) => ListTile(
+          title: Text(tasks[index]),
+          leading: Icon(Icons.check_circle_outline),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SecondScreen(data: tasks[index]),
+            ),
+          ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          print("Add Button Clicked!");
+        },
+        child: Icon(Icons.add),
+      ),
     );
   }
 }
