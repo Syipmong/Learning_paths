@@ -1,4 +1,5 @@
 {
     "editor.inlineSuggest.edits.allowCodeShifting": "always",
-    "editor.inlineSuggest.enabled": false
+    "editor.inlineSuggest.enabled": false,
+    "cmake.ignoreCMakeListsMissing": true
 }

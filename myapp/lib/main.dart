@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,11 +29,43 @@ class _FirstScreenState extends State<FirstScreen> {
     Task(name: "Buy Milk", isCompleted: false),
     Task(name: "Walk the Dog", isCompleted: false),
     Task(name: "Code Flutter", isCompleted: false),
-    Task(name: "Eat Pizza", isCompleted: true)
-    ];
+    Task(name: "Eat Pizza", isCompleted: true),
+  ];
+
+  Future<void> _saveTasks() async{
+    final prefs = await SharedPreferences.getInstance();
+
+    final String data = jsonEncode(tasks.map((task)=> task.toMap()).toList());
+
+    await prefs.setString('my_task', data);
+  }
+
+  Future<void> _loadTasks() async{
+    final prefs = await SharedPreferences.getInstance();
+    final String? data = prefs.getString('my_task');
+
+    if(data != null){
+
+      final List<dynamic> decodedList = jsonDecode(data);
+      
+
+      final List<Task> loadedTasks = decodedList.map((item)=> Task.fromMap(item)).toList();
 
 
+      setState(() {
+        tasks.clear();
+        tasks.addAll(loadedTasks);
+      });
+    }
+  }
 
+ 
+
+  @override
+   void initState() {
+    super.initState();
+    _loadTasks();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,13 +73,32 @@ class _FirstScreenState extends State<FirstScreen> {
       body: ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (context, index) => ListTile(
-          title: Text(tasks[index].name),
-          leading: Icon(Icons.check_circle_outline),
+          title: Text(
+            tasks[index].name,
+            style: TextStyle(
+              decoration: tasks[index].isCompleted
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
+              color: tasks[index].isCompleted
+                  ? Colors.grey
+                  : Colors.greenAccent,
+            ),
+          ),
+          leading: IconButton(
+            icon: tasks[index].isCompleted
+                ? Icon(Icons.check_circle_outline, color: Colors.grey)
+                : Icon(Icons.circle_outlined, color: Colors.greenAccent),
+            onPressed: () => setState(() {
+              tasks[index].isCompleted = !tasks[index].isCompleted;
+              _saveTasks();
+            }),
+          ),
           trailing: IconButton(
-            icon: Icon(Icons.delete),
+            icon: Icon(Icons.delete, color: Colors.red),
             onPressed: () {
               setState(() {
                 tasks.removeAt(index);
+                _saveTasks();
               });
             },
           ),
@@ -69,7 +123,11 @@ class _FirstScreenState extends State<FirstScreen> {
               actions: [
                 TextButton(
                   onPressed: () => setState(() {
-                    tasks.add(Task(name: _taskController.text, isCompleted: false));
+                    tasks.insert(
+                      0,
+                      Task(name: _taskController.text, isCompleted: false),
+                    );
+                    _saveTasks();
                     _taskController.clear();
                     Navigator.pop(context);
                   }),
@@ -108,8 +166,13 @@ class SecondScreen extends StatelessWidget {
 }
 
 class Task {
-  final String name;
-  final bool isCompleted;
+  String name;
+  bool isCompleted;
 
   Task({required this.name, required this.isCompleted});
+
+  Map<String, dynamic> toMap() => {'name': name, 'isCompleted': isCompleted};
+
+  factory Task.fromMap(Map<String, dynamic> map) =>
+      Task(name: map['name'], isCompleted: map['isCompleted']);
 }
