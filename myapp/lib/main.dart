@@ -12,7 +12,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: FirstScreen());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: FirstScreen());
   }
 }
 
@@ -69,76 +71,86 @@ class _FirstScreenState extends State<FirstScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: tasks.length,
-        itemBuilder: (context, index) => ListTile(
-          title: Text(
-            tasks[index].name,
-            style: TextStyle(
-              decoration: tasks[index].isCompleted
-                  ? TextDecoration.lineThrough
-                  : TextDecoration.none,
-              color: tasks[index].isCompleted
-                  ? Colors.grey
-                  : Colors.greenAccent,
-            ),
-          ),
-          leading: IconButton(
-            icon: tasks[index].isCompleted
-                ? Icon(Icons.check_circle_outline, color: Colors.grey)
-                : Icon(Icons.circle_outlined, color: Colors.greenAccent),
-            onPressed: () => setState(() {
-              tasks[index].isCompleted = !tasks[index].isCompleted;
+        appBar: AppBar(title: Text('First Screen'),
+        actions: [
+          IconButton(icon: Icon(Icons.refresh), onPressed: ()async {
+            await Future.delayed(Duration(seconds: 2));
+            setState(() {
+              tasks.add(Task(name: "Tasks Downloaded", isCompleted: false));
               _saveTasks();
-            }),
-          ),
-          trailing: IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              setState(() {
-                tasks.removeAt(index);
+            });
+          },)
+        ],),
+        body: ListView.builder(
+          itemCount: tasks.length,
+          itemBuilder: (context, index) => ListTile(
+            title: Text(
+              tasks[index].name,
+              style: TextStyle(
+                decoration: tasks[index].isCompleted
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+                color: tasks[index].isCompleted
+                    ? Colors.grey
+                    : Colors.greenAccent,
+              ),
+            ),
+            leading: IconButton(
+              icon: tasks[index].isCompleted
+                  ? Icon(Icons.check_circle_outline, color: Colors.grey)
+                  : Icon(Icons.circle_outlined, color: Colors.greenAccent),
+              onPressed: () => setState(() {
+                tasks[index].isCompleted = !tasks[index].isCompleted;
                 _saveTasks();
-              });
-            },
-          ),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SecondScreen(data: tasks[index].name),
+              }),
+            ),
+            trailing: IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () {
+                setState(() {
+                  tasks.removeAt(index);
+                  _saveTasks();
+                });
+              },
+            ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SecondScreen(data: tasks[index].name),
+              ),
             ),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text("New Task"),
-              content: TextField(
-                controller: _taskController,
-                decoration: InputDecoration(hintText: "Enter Task Name"),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => setState(() {
-                    tasks.insert(
-                      0,
-                      Task(name: _taskController.text, isCompleted: false),
-                    );
-                    _saveTasks();
-                    _taskController.clear();
-                    Navigator.pop(context);
-                  }),
-                  child: Text("Submit"),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text("New Task"),
+                content: TextField(
+                  controller: _taskController,
+                  decoration: InputDecoration(hintText: "Enter Task Name"),
                 ),
-              ],
-            ),
-          );
-        },
-        child: Icon(Icons.add),
-      ),
-    );
+                actions: [
+                  TextButton(
+                    onPressed: () => setState(() {
+                      tasks.insert(
+                        0,
+                        Task(name: _taskController.text, isCompleted: false),
+                      );
+                      _saveTasks();
+                      _taskController.clear();
+                      Navigator.pop(context);
+                    }),
+                    child: Text("Submit"),
+                  ),
+                ],
+              ),
+            );
+          },
+          child: Icon(Icons.add),
+        ),
+      );
   }
 }
 
