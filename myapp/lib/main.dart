@@ -69,7 +69,6 @@ class _FirstScreenState extends State<FirstScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("First Screen")),
       body: ListView.builder(
         itemCount: tasks.length,
         itemBuilder: (context, index) => ListTile(
