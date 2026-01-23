@@ -96,14 +96,12 @@ class SideDrawer extends StatelessWidget {
               title: const Text("Home"),
               onTap: () {
                 // We will learn navigation later!
-                print("Go Home");
               },
             ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text("Settings"),
               onTap: () {
-                print("Go to Settings");
               },
             ),
           ],

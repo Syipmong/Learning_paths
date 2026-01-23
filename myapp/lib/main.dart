@@ -26,6 +26,8 @@ class FirstScreen extends StatefulWidget {
 
 class _FirstScreenState extends State<FirstScreen> {
   final TextEditingController _taskController = TextEditingController();
+  bool isLoading = false;
+
   final List<Task> tasks = [
     Task(name: "Buy Milk", isCompleted: false),
     Task(name: "Walk the Dog", isCompleted: false),
@@ -130,7 +132,14 @@ class _FirstScreenState extends State<FirstScreen> {
                   ),
                   IconButton(
                     onPressed: _downloadTodo,
-                    icon: Icon(
+                    icon: isLoading? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        backgroundColor: Colors.red,
+                        color: Colors.white, strokeWidth: 2,
+                      ),
+                    ): Icon(
                       Icons.cloud_download_outlined,
                       color: Colors.white,
                     ),
@@ -238,15 +247,24 @@ class _FirstScreenState extends State<FirstScreen> {
   }
 
   void _downloadTodo() async {
-    final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/todos/2'));
+    setState(() {
+      isLoading = true;
+    });
+    final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/todos?_limit=5'), headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },);
     if (response.statusCode == 200){
-      Map<String, dynamic> data = jsonDecode(response.body);
+      List<dynamic> dataList = jsonDecode(response.body);
       setState(() {
-        tasks.add(Task(name: data['title'], isCompleted: data['completed']));
+        isLoading = false;
+        for(var item in dataList){
+          tasks.add(Task(name: item['title'], isCompleted: item['completed']));
         _saveTasks();
+        }
       });
     }else{
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request failed with Status Code ${response.statusCode}')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request failed with Status Code ${response.statusCode}'), backgroundColor: Colors.red,));
     }
   }
 }
