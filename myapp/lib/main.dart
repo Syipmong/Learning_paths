@@ -1,24 +1,30 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+final titleProvider = Provider<String>((ref) => "RiverPod Task Manager",);
+
 void main() {
-  runApp(const MyApp());
+  runApp(ProviderScope(child: const MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: FirstScreen());
+  Widget build(BuildContext context, WidgetRef ref) {
+    final String appTitle = ref.watch(titleProvider);
+    return MaterialApp(debugShowCheckedModeBanner: false, home: FirstScreen(appTitle: appTitle,));
   }
 }
 
 class FirstScreen extends StatefulWidget {
-  const FirstScreen({super.key});
+  final String appTitle;
+  const FirstScreen({super.key, required this.appTitle});
 
   @override
   State<FirstScreen> createState() => _FirstScreenState();
@@ -85,6 +91,7 @@ class _FirstScreenState extends State<FirstScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text(widget.appTitle),),
       body: Column(
         children: [
           Container(
@@ -96,7 +103,7 @@ class _FirstScreenState extends State<FirstScreen> {
                 mainAxisAlignment: .spaceAround,
                 children: [
                   Text(
-                    'Hey, Yipmong!',
+                    "Hello Yipmong!",
                     style: TextStyle(
                       fontWeight: .bold,
                       fontSize: 18,
@@ -132,17 +139,20 @@ class _FirstScreenState extends State<FirstScreen> {
                   ),
                   IconButton(
                     onPressed: _downloadTodo,
-                    icon: isLoading? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        backgroundColor: Colors.red,
-                        color: Colors.white, strokeWidth: 2,
-                      ),
-                    ): Icon(
-                      Icons.cloud_download_outlined,
-                      color: Colors.white,
-                    ),
+                    icon: isLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              backgroundColor: Colors.red,
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Icon(
+                            Icons.cloud_download_outlined,
+                            color: Colors.white,
+                          ),
                   ),
                 ],
               ),
@@ -250,21 +260,41 @@ class _FirstScreenState extends State<FirstScreen> {
     setState(() {
       isLoading = true;
     });
-    final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/todos?_limit=5'), headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },);
-    if (response.statusCode == 200){
-      List<dynamic> dataList = jsonDecode(response.body);
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://jsonplaceholder.typicode.com/todos?_limit=5'),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> dataList = jsonDecode(response.body);
+        setState(() {
+          isLoading = false;
+          for (var item in dataList) {
+            tasks.add(
+              Task(name: item['title'], isCompleted: item['completed']),
+            );
+            _saveTasks();
+          }
+        });
+      } else {
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request failed with Status Code ${response.statusCode}'), backgroundColor: Colors.red,));
+        throw Exception('Server Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('an error occured, please check your internet'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
       setState(() {
         isLoading = false;
-        for(var item in dataList){
-          tasks.add(Task(name: item['title'], isCompleted: item['completed']));
-        _saveTasks();
-        }
       });
-    }else{
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request failed with Status Code ${response.statusCode}'), backgroundColor: Colors.red,));
     }
   }
 }
@@ -301,4 +331,23 @@ class Task {
 
   factory Task.fromMap(Map<String, dynamic> map) =>
       Task(name: map['name'], isCompleted: map['isCompleted']);
+}
+
+
+
+class TaskNotifier extends StateNotifier<List<Task>>{
+  TaskNotifier(): super([
+    Task(name: 'Yippy Rizz', isCompleted: false),
+    Task(name: 'Juicy Tosan', isCompleted: false)
+  ]);
+
+  void addTask(String task){
+    state = [Task(name: task, isCompleted: false), ...state];
+  }
+
+  void removeTask(int index){
+    state = [for (int i= 0; i < state.length; i++)
+      if(i!=index) state[i]
+    ];
+  }
 }
