@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         child: Container(
           padding: EdgeInsets.all(20),
-          width: 200,
+          width: 400,
           height: 150,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -30,7 +30,11 @@ class HomeScreen extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(20.0)),
             
           ),
-          child: IconButton(onPressed: (){}, icon: FaIcon(FontAwesomeIcons.amazon)),
+          child: ListTile(
+            leading: FaIcon(FontAwesomeIcons.comment),
+            title: Text('Name'),
+            subtitle: Text("Ypmong Said"),
+          ),
         ),
       ),
       floatingActionButton: IconButton(onPressed: (){}, icon: FaIcon(FontAwesomeIcons.google))
