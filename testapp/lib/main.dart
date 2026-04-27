@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-void main()=> runApp(MyApp());
-
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: HomeScreen(),
-    );
+    return MaterialApp(home: HomeScreen());
   }
 }
 
@@ -21,13 +19,22 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Center(
-            child: Text('Hello'),
-          )
-        ],
+      body: Center(
+        child: Container(
+          padding: EdgeInsets.all(20),
+          width: 200,
+          height: 150,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+            colors: [Colors.red, Colors.amber],),
+            borderRadius: BorderRadius.all(Radius.circular(20.0)),
+            
+          ),
+          child: IconButton(onPressed: (){}, icon: FaIcon(FontAwesomeIcons.amazon)),
+        ),
       ),
+      floatingActionButton: IconButton(onPressed: (){}, icon: FaIcon(FontAwesomeIcons.google))
+      ,
     );
   }
 }

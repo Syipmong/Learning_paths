@@ -75,6 +75,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  font_awesome_flutter:
+    dependency: "direct main"
+    description:
+      name: font_awesome_flutter
+      sha256: "09dcde8ab90ffae1a7d65ff2ef96fc62a17ad9d0ce7c127b317ded676b0d5935"
+      url: "https://pub.dev"
+    source: hosted
+    version: "11.0.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -210,4 +218,4 @@ packages:
     version: "15.1.0"
 sdks:
   dart: ">=3.11.0 <4.0.0"
-  flutter: ">=3.18.0-18.0.pre.54"
+  flutter: ">=3.27.0"
