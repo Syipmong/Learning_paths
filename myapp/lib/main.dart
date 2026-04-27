@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-void main()=> runApp(
-  NewApp()
-);
+void man()=> runApp(MyApp());
 
-class NewApp extends StatelessWidget {
-  const NewApp({super.key});
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return MaterialApp(
+      home: HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Center(
+            child: Text('Hello'),
+          )
+        ],
+      ),
+    );
   }
 }
