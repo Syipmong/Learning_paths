@@ -7,8 +7,8 @@ import 'package:myapp/config/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-final titleProvider = Provider<String>((ref) => "RiverPod Task Manager",);
-final taskProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref){
+final titleProvider = Provider<String>((ref) => "RiverPod Task Manager");
+final taskProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref) {
   return TaskNotifier();
 });
 
@@ -22,7 +22,10 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final String appTitle = ref.watch(titleProvider);
-    return MaterialApp(debugShowCheckedModeBanner: false, home: FirstScreen(appTitle: appTitle,));
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: FirstScreen(appTitle: appTitle),
+    );
   }
 }
 
@@ -38,18 +41,11 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
   final TextEditingController _taskController = TextEditingController();
   bool isLoading = false;
 
-
-
   // void _refresh() async{
   //   setState((){
   //     tasks.add(Task(name: "Test 1", isCompleted: false));
   //   });
   // }
-
-
-
-
-
 
   void _downloadTodo() async {
     setState(() {
@@ -66,8 +62,9 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
       );
       if (response.statusCode == 200) {
         List<dynamic> dataList = jsonDecode(response.body);
-        
-          
+        for (var item in dataList){
+        ref.read(taskProvider.notifier).addTask(item['title']);
+        }
       } else {
         // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request failed with Status Code ${response.statusCode}'), backgroundColor: Colors.red,));
         throw Exception('Server Error: ${response.statusCode}');
@@ -86,12 +83,11 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final tasks = ref.watch(taskProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(widget.appTitle),),
+      appBar: AppBar(title: Text(widget.appTitle)),
       body: Column(
         children: [
           Container(
@@ -111,10 +107,8 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {
-                      
-                    },
-                    icon: Icon(Icons.refresh, color: Colors.white, size: 20.0,),
+                    onPressed: () {},
+                    icon: Icon(Icons.refresh, color: Colors.white, size: 20.0),
                   ),
                   IconButton(
                     onPressed: () {
@@ -127,7 +121,10 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
                             TextField(controller: _taskController),
                             IconButton(
                               onPressed: () {
-                                ref.read(taskProvider.notifier).addTask(_taskController.text);
+                                ref
+                                    .read(taskProvider.notifier)
+                                    .addTask(_taskController.text);
+                                Navigator.pop(context);
                               },
                               icon: Icon(Icons.send),
                             ),
@@ -195,7 +192,7 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
                       icon: tasks[index].isCompleted
                           ? Icon(Icons.check_circle_outline, color: Colors.grey)
                           : Icon(Icons.circle_outlined, color: Colors.green),
-                      onPressed: (){
+                      onPressed: () {
                         ref.read(taskProvider.notifier).toggleTask(index);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -206,7 +203,7 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
                                 : Text('$index Task has been unmarked'),
                           ),
                         );
-                      }
+                      },
                     ),
                     trailing: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
@@ -239,7 +236,12 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
                 decoration: InputDecoration(hintText: "Enter Task Name"),
               ),
               actions: [
-                TextButton(onPressed: () => ref.read(taskProvider.notifier).addTask(_taskController.text), child: Text("Submit")),
+                TextButton(
+                  onPressed: () => ref
+                      .read(taskProvider.notifier)
+                      .addTask(_taskController.text),
+                  child: Text("Submit"),
+                ),
               ],
             ),
           );
@@ -248,8 +250,6 @@ class _FirstScreenState extends ConsumerState<FirstScreen> {
       ),
     );
   }
-
-  
 }
 
 class SecondScreen extends StatelessWidget {
@@ -286,58 +286,57 @@ class Task {
       Task(name: map['name'], isCompleted: map['isCompleted']);
 }
 
-
-
-class TaskNotifier extends StateNotifier<List<Task>>{
-  TaskNotifier(): super([
-    Task(name: 'Yippy Rizz', isCompleted: false),
-    Task(name: 'Juicy Tosan', isCompleted: false)
-  ]);
-
+class TaskNotifier extends StateNotifier<List<Task>> {
+  TaskNotifier()
+    : super([]){
+      loadTasks();
+    }
 
   //--- MEMORY ----
-  Future<void> saveTasks()async{
+  Future<void> saveTasks() async {
     final prefs = await SharedPreferences.getInstance();
-    final String data = jsonEncode(state.map((task)=> task.toMap()).toList());
+    final String data = jsonEncode(state.map((task) => task.toMap()).toList());
     await prefs.setString('my_tasks', data);
   }
 
-  Future<void> loadTasks()async{
+  Future<void> loadTasks() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? data  = prefs.getString('my_tasks');
+    final String? data = prefs.getString('my_tasks');
 
-    if(data != null){
-    final List<dynamic> decodedList = jsonDecode(data);
-    final List<Task> loadedTasks = decodedList.map((item)=> Task.fromMap(item)).toList(); 
-    state = loadedTasks;
-    }else{
+    if (data != null) {
+      final List<dynamic> decodedList = jsonDecode(data);
+      final List<Task> loadedTasks = decodedList
+          .map((item) => Task.fromMap(item))
+          .toList();
+      state = loadedTasks;
+    } else {
       state = [
         Task(name: "Yippy Rizz", isCompleted: false),
-        Task(name: "Juicy Tosan", isCompleted: true)
+        Task(name: "Juicy Tosan", isCompleted: true),
       ];
     }
-
   }
 
-  void addTask(String task){
+  void addTask(String task) {
     state = [Task(name: task, isCompleted: false), ...state];
     saveTasks();
   }
 
-  void removeTask(int index){
-    state = [for (int i= 0; i < state.length; i++)
-      if(i!=index) state[i]
+  void removeTask(int index) {
+    state = [
+      for (int i = 0; i < state.length; i++)
+        if (i != index) state[i],
     ];
     saveTasks();
   }
 
-  void toggleTask(int index){
+  void toggleTask(int index) {
     state = [
       for (int i = 0; i < state.length; i++)
-        if(i == index)
+        if (i == index)
           Task(name: state[i].name, isCompleted: !state[i].isCompleted)
         else
-          state[i]
+          state[i],
     ];
     saveTasks();
   }
