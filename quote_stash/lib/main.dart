@@ -15,8 +15,9 @@ class QuoteStash extends StatelessWidget {
   const QuoteStash({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {    
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: HomeScreen(),
     );
   }
