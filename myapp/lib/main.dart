@@ -8,6 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 final titleProvider = Provider<String>((ref) => "RiverPod Task Manager",);
+final taskProvider = StateNotifierProvider<TaskNotifier, List<Task>>((ref){
+  return TaskNotifier();
+});
 
 void main() {
   runApp(ProviderScope(child: const MyApp()));
@@ -23,38 +26,30 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-class FirstScreen extends StatefulWidget {
+class FirstScreen extends ConsumerStatefulWidget {
   final String appTitle;
   const FirstScreen({super.key, required this.appTitle});
 
   @override
-  State<FirstScreen> createState() => _FirstScreenState();
+  ConsumerState<FirstScreen> createState() => _FirstScreenState();
 }
 
-class _FirstScreenState extends State<FirstScreen> {
+class _FirstScreenState extends ConsumerState<FirstScreen> {
   final TextEditingController _taskController = TextEditingController();
   bool isLoading = false;
 
-  final List<Task> tasks = [
-    Task(name: "Buy Milk", isCompleted: false),
-    Task(name: "Walk the Dog", isCompleted: false),
-    Task(name: "Code Flutter", isCompleted: false),
-    Task(name: "Eat Pizza", isCompleted: true),
-  ];
 
-  void _refresh() async {
-    setState(() {
-      tasks.add(Task(name: 'Download ME', isCompleted: false));
+
+  void _refresh() async{
+    setState((){
+      tasks.add(Task(name: "Test 1", isCompleted: false));
     });
   }
 
   void _newTask() async {
-    setState(() {
-      tasks.insert(0, Task(name: _taskController.text, isCompleted: false));
-      _saveTasks();
-      _taskController.clear();
-      Navigator.pop(context);
-    });
+    ref.read(taskProvider.notifier).addTask(_taskController.text);
+    _taskController.clear();
+    Navigator.pop(context);
   }
 
   Future<void> _saveTasks() async {
@@ -83,6 +78,48 @@ class _FirstScreenState extends State<FirstScreen> {
     }
   }
 
+  void _downloadTodo() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://jsonplaceholder.typicode.com/todos?_limit=5'),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      );
+      if (response.statusCode == 200) {
+        List<dynamic> dataList = jsonDecode(response.body);
+        setState(() {
+          isLoading = false;
+          for (var item in dataList) {
+            tasks.add(
+              Task(name: item['title'], isCompleted: item['completed']),
+            );
+            _saveTasks();
+          }
+        });
+      } else {
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request failed with Status Code ${response.statusCode}'), backgroundColor: Colors.red,));
+        throw Exception('Server Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('an error occured, please check your internet'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +128,7 @@ class _FirstScreenState extends State<FirstScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tasks = ref.watch(taskProvider);
     return Scaffold(
       appBar: AppBar(title: Text(widget.appTitle),),
       body: Column(
@@ -165,10 +203,7 @@ class _FirstScreenState extends State<FirstScreen> {
               itemBuilder: (context, index) => Dismissible(
                 key: Key(tasks[index].name),
                 onDismissed: (direction) {
-                  setState(() {
-                    tasks.removeAt(index);
-                    _saveTasks();
-                  });
+                  ref.read(taskProvider.notifier).removeTask(index);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Task at Number $index had been removed'),
@@ -199,8 +234,8 @@ class _FirstScreenState extends State<FirstScreen> {
                       icon: tasks[index].isCompleted
                           ? Icon(Icons.check_circle_outline, color: Colors.grey)
                           : Icon(Icons.circle_outlined, color: Colors.green),
-                      onPressed: () => setState(() {
-                        tasks[index].isCompleted = !tasks[index].isCompleted;
+                      onPressed: (){
+                        ref.read(taskProvider.notifier).toggleTask(index);
                         _saveTasks();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -211,15 +246,12 @@ class _FirstScreenState extends State<FirstScreen> {
                                 : Text('$index Task has been unmarked'),
                           ),
                         );
-                      }),
+                      }
                     ),
                     trailing: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        setState(() {
-                          tasks.removeAt(index);
-                          _saveTasks();
-                        });
+                        ref.read(taskProvider.notifier).removeTask(index);
                       },
                     ),
                     onTap: () => Navigator.push(
@@ -257,47 +289,7 @@ class _FirstScreenState extends State<FirstScreen> {
     );
   }
 
-  void _downloadTodo() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse('https://jsonplaceholder.typicode.com/todos?_limit=5'),
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      );
-      if (response.statusCode == 200) {
-        List<dynamic> dataList = jsonDecode(response.body);
-        setState(() {
-          isLoading = false;
-          for (var item in dataList) {
-            tasks.add(
-              Task(name: item['title'], isCompleted: item['completed']),
-            );
-            _saveTasks();
-          }
-        });
-      } else {
-        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Request failed with Status Code ${response.statusCode}'), backgroundColor: Colors.red,));
-        throw Exception('Server Error: ${response.statusCode}');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('an error occured, please check your internet'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
+  
 }
 
 class SecondScreen extends StatelessWidget {
@@ -349,6 +341,16 @@ class TaskNotifier extends StateNotifier<List<Task>>{
   void removeTask(int index){
     state = [for (int i= 0; i < state.length; i++)
       if(i!=index) state[i]
+    ];
+  }
+
+  void toggleTask(int index){
+    state = [
+      for (int i = 0; i < state.length; i++)
+        if(i == index)
+          Task(name: state[i].name, isCompleted: !state[i].isCompleted)
+        else
+          state[i]
     ];
   }
 }
